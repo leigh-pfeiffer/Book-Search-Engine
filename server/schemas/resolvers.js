@@ -1,39 +1,31 @@
 const { User } = require("../models");
-const { AuthenticationError } = require("apollo-server-express");
 const { signToken } = require("../utils/auth");
+const { AuthenticationError } = require("apollo-server-express");
 
 const resolvers = {
   Query: {
     me: async (parent, args, context) => {
       if (context.user) {
-        const userData = await User.findOne({ _id: context.user._id }).select(
-          "-__v -password");
+        const userData = await User.findOne({ _id: context.user._id })
+          .select("-__v -password")
+          .populate("books");
 
         return userData;
       }
 
       throw new AuthenticationError("Not logged in");
     },
-    users: async () => {
-      return User.find().select("-__v -password");
-    },
-
-    // get a user by username
-    user: async (parent, { username }) => {
-      return User.findOne({ username }).select("-__v -password");
-    },
-
-    // get a user by _id
-    userById: async (parent, { _id }) => {
-      return User.findOne({ _id }).select("-__v -password");
-    },
   },
   Mutation: {
     addUser: async (parent, args) => {
-      const user = await User.create(args);
-      const token = signToken(user);
+      try {
+        const user = await User.create(args);
 
-      return { token, user };
+        const token = signToken(user);
+        return { token, user };
+      } catch (err) {
+        console.log(err);
+      }
     },
     login: async (parent, { email, password }) => {
       const user = await User.findOne({ email });
@@ -52,37 +44,33 @@ const resolvers = {
       return { token, user };
     },
     saveBook: async (parent, args, context) => {
-        // console.log("savedBooks:", savedBooks)
       if (context.user) {
         const updatedUser = await User.findByIdAndUpdate(
-            { _id: context.user._id },
-            { $addToSet: { savedBooks: args.input } },
-            { new: true, runValidators: true }
-          );
-      
-          return updatedUser;
-        }
-      
-        throw new AuthenticationError('You need to be logged in!');
-      },
-      removeBook: async (parent, args, context) => {
-        if (context.user) {
-          console.log(context.user);
-          const updatedUser = await User.findOneAndUpdate(
-            { _id: context.user._id },
-            { $pull: { savedBooks: { bookId: args.bookId } } },
-            { new: true }
-          );
-        console.log(updatedUser);
-          return updatedUser;
-        }
-  
-        throw new AuthenticationError("You need to be logged in!");
-      },
+          { _id: context.user._id },
+          // take the input type to replace "body" as the arguement
+          { $addToSet: { savedBooks: args.input } },
+          { new: true, runValidators: true }
+        );
+
+        return updatedUser;
+      }
+
+      throw new AuthenticationError("You need to be logged in!");
+    },
+    removeBook: async (parent, args, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId: args.bookId } } },
+          { new: true }
+        );
+
+        return updatedUser;
+      }
+
+      throw new AuthenticationError("You need to be logged in!");
+    },
   },
 };
 
 module.exports = resolvers;
-
-// IMPORTANT
-// The Apollo server library can also be set up to pass the data sources, such as the database model we're working with, as an argument to the resolver function. If you ever look at the tutorial Apollo has on its website, you'll see that they set it up in that way, so don't be alarmed if it looks different from how we've set it up here.
