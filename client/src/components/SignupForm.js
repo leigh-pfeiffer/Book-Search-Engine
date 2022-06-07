@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { useMutation } from "@apollo/react-hooks";
+import { ADD_USER } from "../utils/mutations";
 
 import Auth from "../utils/auth";
-import { ADD_USER } from "../utils/mutations";
 
 const SignupForm = () => {
   // set initial form state
@@ -12,12 +12,12 @@ const SignupForm = () => {
     email: "",
     password: "",
   });
+
+  const [addUser, { error }] = useMutation(ADD_USER);
   // set state for form validation
   const [validated] = useState(false);
   // set state for alert
   const [showAlert, setShowAlert] = useState(false);
-
-  const [addUser, { error }] = useMutation(ADD_USER);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -40,7 +40,6 @@ const SignupForm = () => {
       });
 
       Auth.login(data.addUser.token);
-
     } catch (err) {
       console.error(err);
       setShowAlert(true);
@@ -125,7 +124,6 @@ const SignupForm = () => {
           Submit
         </Button>
       </Form>
-      {error && <div>Login failed</div>}
     </>
   );
 };

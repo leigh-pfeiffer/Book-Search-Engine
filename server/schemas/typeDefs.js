@@ -1,4 +1,4 @@
-// import the gql tagged template function (they are an advanced use if template literals)
+// import the gql tagged template function
 const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
@@ -6,37 +6,39 @@ const typeDefs = gql`
     me: User
   }
 
-  type Mutation {
-    login(email: String!, password: String!): Auth
-    addUser(username: String!, email: String!, password: String!): Auth
-    saveBook(input: savedBook!): User
-    removeBook(bookId: ID!): User
-  }
-
   type User {
-    _id: ID!
+    _id: ID
     username: String
     email: String
+    password: String
     bookCount: Int
     savedBooks: [Book]
   }
 
-  type Book {
-    bookId: String
-    authors: [String]
-    description: String
-    title: String
-    image: String
-    link: String
+  type Mutation {
+    login(email: String!, password: String!): Auth
+    addUser(username: String!, password: String!, email: String!): Auth
+    saveBook(body: saveBookInput): User
+    removeBook(bookId: String!): User
   }
 
-  input savedBook {
+  input saveBookInput {
     description: String
     title: String
     bookId: String
     image: String
     link: String
     authors: [String]
+  }
+
+  type Book {
+    _id: ID
+    authors: [String]
+    description: String
+    title: String
+    bookId: String
+    image: String
+    link: String
   }
 
   type Auth {

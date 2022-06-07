@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Jumbotron,
   Container,
@@ -7,17 +7,18 @@ import {
   Button,
 } from "react-bootstrap";
 import { useQuery, useMutation } from "@apollo/react-hooks";
-
-import Auth from "../utils/auth";
-import { removeBookId } from "../utils/localStorage";
 import { GET_ME } from "../utils/queries";
 import { REMOVE_BOOK } from "../utils/mutations";
+import { getMe, deleteBook } from "../utils/API";
+import Auth from "../utils/auth";
+import { removeBookId } from "../utils/localStorage";
 
 const SavedBooks = () => {
   const { loading, data } = useQuery(GET_ME);
-  const [removeBook] = useMutation(REMOVE_BOOK);
-
-  const userData = data?.me || [];
+  const [removeBook, { error }] = useMutation(REMOVE_BOOK);
+  const userData = data?.me || {};
+  // use this to determine if `useEffect()` hook needs to run again
+  const userDataLength = Object.keys(userData).length;
 
   // create function that accepts the book's mongo _id value as param and deletes the book from the database
   const handleDeleteBook = async (bookId) => {
@@ -28,9 +29,7 @@ const SavedBooks = () => {
     }
 
     try {
-      await removeBook({
-        variables: { bookId },
-      });
+      await removeBook({ variables: { bookId: bookId } });
 
       // upon success, remove book's id from localStorage
       removeBookId(bookId);
@@ -73,12 +72,6 @@ const SavedBooks = () => {
                 <Card.Body>
                   <Card.Title>{book.title}</Card.Title>
                   <p className="small">Authors: {book.authors}</p>
-                  <p className="small">
-                    Link:{" "}
-                    <a href={book.link} target="_blank" rel="noreferrer">
-                      {book.title}
-                    </a>
-                  </p>
                   <Card.Text>{book.description}</Card.Text>
                   <Button
                     className="btn-block btn-danger"
