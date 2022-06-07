@@ -1,23 +1,5 @@
-import axios from 'axios';
-
-export default {
-    getBooks: function (query) {
-        return axios.get(`https://www.googleapis.com/books/v1/volumes?q=` + query);
-    },
-
-    getSavedBooks: function () {
-        return axios.get('./api/books');
-    },
-
-    getBook: function (id) {
-        return axios.get(`/api/books/${id}`);
-    },
-
-    deleteBook: function (id) {
-        return axios.delete(`/api/books/${id}`);
-    },
-
-    saveBook: function (bookData) {
-        return axios.post(`/api/books`, bookData);
-    },
+// make a search to google books api
+// https://www.googleapis.com/books/v1/volumes?q=harry+potter
+export const searchGoogleBooks = (query) => {
+  return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
 };
